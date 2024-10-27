@@ -1,0 +1,29 @@
+# Primera etapa: Instalación
+FROM node:19-alpine AS dependences  
+
+WORKDIR /usr/src/app
+COPY package.json ./
+RUN npm install
+
+# Segunda etapa: Construcción
+FROM node:19-alpine
+
+WORKDIR /usr/src/app
+
+# Instalar bash
+RUN apk update && apk add --no-cache bash mysql-client
+
+# Copiar archivos necesarios
+COPY --from=dependences /usr/src/app/node_modules ./node_modules
+COPY package.json ./
+COPY wait-for-it.sh ./
+COPY ./src ./src
+
+RUN apk update && apk add ## Instalar mysql-client
+RUN chmod +x wait-for-it.sh
+# Exponer el puerto 3000
+EXPOSE 3000
+
+
+# Comando a ejecutar
+CMD ["sh", "-c", "/usr/src/app/wait-for-it.sh -t 0 database:3306 -- npm start"]

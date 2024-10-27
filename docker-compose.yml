@@ -1,0 +1,30 @@
+# version: "3.8" # Versión de Docker Compose
+
+services: # Servicios
+  database: # Servicio de la base de datos
+    image: mysql:5.7 # Imagen de MySQL 5.7
+    container_name: crudmysql_database_contenidor # Nombre del contenedor
+    volumes: # Volúmenes
+        - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql 
+    command: --init-file /data/application/init.sql
+    ports: # Puerto de la base de datos
+      - "3306:3306"
+    networks: # declaración de la red
+      - crud_net    
+    environment: # Variables de entorno
+      MYSQL_ROOT_PASSWORD: root # Contraseña de la base de datos
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+
+  web:
+    build: ./aplication # Ruta del Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: crudmysql_web_contenidor
+    networks:
+      - crud_net
+    command: sh -c '/usr/src/app/wait-for-it.sh -t 0 database:3306 -- npm start' # Comando para ejecutar el contenedor
+    depends_on:
+      - database
+networks:
+  crud_net:
